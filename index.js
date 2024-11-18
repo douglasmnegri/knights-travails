@@ -1,54 +1,77 @@
 class Knight {
   constructor() {
-    this.board = this.buildBoard();
-    this.edgeList = [];
     this.knightMoves = [
-      [1, -2],
-      [2, -1],
-      [2, 1],
-      [1, 2],
-      [-1, 2],
-      [-2, 1],
-      [-2, -1],
-      [-1, -2],
+      [1, -2], [2, -1], [2, 1], [1, 2],
+      [-1, 2], [-2, 1], [-2, -1], [-1, -2],
     ];
-  }
-
-  buildBoard() {
-    let boardArray = [];
-    for (let row = 0; row <= 7; row++) {
-      for (let column = 0; column <= 7; column++) {
-        boardArray.push([row, column]);
-      }
-    }
-    return boardArray;
   }
 
   isValid(x, y) {
     return x >= 0 && x < 8 && y >= 0 && y < 8;
   }
 
-  legalMoves(knightMoves = this.knightMoves) {
-    const arrOfMoves = [];
+  getPosition(square) {
+    return [Math.floor(square / 8), square % 8];
+  }
 
-    for (let x = 0; x < 8; x++) {
-      for (let y = 0; y < 8; y++) {
-        const from = x * 8 + y;
-        knightMoves.forEach(([dx, dy]) => {
-          const newX = x + dx;
-          const newY = y + dy;
+  getSquare(x, y) {
+    return x * 8 + y;
+  }
+  
+  getCoordinate(sqrIndex) {
+    if(sqrIndex == 0) return [0, 0];
+    return [Math.floor(sqrIndex / 8), sqrIndex % 8];
+}
+  
+  getIndex(coordinateSqr) {
+  return Math.floor(coordinateSqr[0] * 8) + coordinateSqr[1];
+}
 
-          if (this.isValid(newX, newY)) {
-            const to = newX * 8 + newY;
-            arrOfMoves.push([from, to]);
+  knightShortPath(startingSquare, targetSquare) {
+    if (startingSquare === targetSquare) return [startingSquare]
+    
+    startingSquare = this.getIndex(startingSquare);
+    targetSquare = this.getIndex(targetSquare);
+    
+    const queue = [[startingSquare]];
+    const visited = Array(64).fill(false);
+    visited[startingSquare] = true;
+
+    while (queue.length > 0) {
+      const path = queue.shift();
+      const currentSquare = path[path.length - 1];
+      const [x, y] = this.getPosition(currentSquare);
+
+      for (const [dx, dy] of this.knightMoves) {
+        const newX = x + dx;
+        const newY = y + dy;
+        const newSquare = this.getSquare(newX, newY);
+
+        if (this.isValid(newX, newY) && !visited[newSquare]) {
+          if (newSquare === targetSquare) {
+            let pathCoordinates = []
+            path.forEach((num) => {
+              pathCoordinates.push(this.getCoordinate(num));
+            });
+            
+            pathCoordinates.push(this.getCoordinate(targetSquare))
+            
+            return [...pathCoordinates];
           }
-        });
+
+          visited[newSquare] = true;
+          queue.push([...path, newSquare]);
+        }
       }
     }
-    return arrOfMoves;
+
+    return null; 
   }
 }
 
+// Example usage
 const knight = new Knight();
-console.log(knight.legalMoves());
-
+const startingSquare = [0,0]; 
+const targetSquare = [3,3]; 
+const path = knight.knightShortPath(startingSquare, targetSquare);
+console.log(path);
